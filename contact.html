@@ -12,7 +12,7 @@
   <style>
     :root{
       --bg:#000;--text:#fff;--muted:#c8d3e8;--border:rgba(255,255,255,.35);--hover:#cfd2ff;
-      --maxw:1200px; /* site default */
+      --maxw:1200px;
       --sticky:72px;--twofinger:64px
     }
     *,*::before,*::after{box-sizing:border-box}
@@ -21,14 +21,16 @@
     body{margin:0;color:var(--text);background:#000;font-family:Poppins,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;line-height:1.6}
     a{color:inherit;text-decoration:none}
     .container{width:min(100% - 32px,var(--maxw));margin-inline:auto}
+    .no-scroll{overflow:hidden}
+    .hidden{display:none !important}
 
-    /* ===== HEADER (exact copy from index.html) ===== */
+    /* ===== HEADER (exact mobile menu drawer like index/about) ===== */
     header.site-header{
-      position:fixed;top:0;left:0;right:0;z-index:90;
+      position:fixed;top:0;left:0;right:0;z-index:300;
       background:transparent !important;border:0 !important;backdrop-filter:none !important;
       transform:translateY(0);transition:transform 260ms ease;will-change:transform;
     }
-    header.site-header.hide{transform:translateY(-120%)}
+    header.site-header.off{transform:translateY(-120%);pointer-events:none}
     .nav{display:flex;align-items:center;justify-content:space-between;padding:14px 0;background:transparent !important}
 
     .brand{display:flex;align-items:center;gap:10px;font-weight:800;color:#fff;background:transparent !important}
@@ -36,30 +38,47 @@
     .logo svg{width:100%;height:100%;display:block}
 
     .nav-links{display:flex;gap:22px;background:transparent !important}
-    .nav-links a{
-      position:relative;color:#fff;background:transparent !important;padding:8px 0;border-radius:0;
-      transition:opacity 240ms cubic-bezier(.2,.8,.2,1),text-underline-offset 240ms cubic-bezier(.2,.8,.2,1)
-    }
-    .nav-links a::after{
-      content:"";position:absolute;left:50%;bottom:-6px;height:2px;width:24px;
-      background:linear-gradient(90deg,#7c5cff,#00d1b2);
-      transform:translateX(-50%) scaleX(0);transform-origin:center;transition:transform 180ms ease;
-    }
-    .nav-links a:hover{opacity:.9}
-    .nav-links a:hover::after{transform:translateX(-50%) scaleX(1)}
-    .menu-toggle{display:none;background:transparent;border:0;padding:8px}
-    .menu-toggle svg{width:26px;height:26px;color:#fff}
+    .nav-links a{position:relative;color:#fff;background:transparent !important;padding:8px 0;border-radius:0;font-weight:600;white-space:nowrap}
+    .nav-links a::after{content:"";position:absolute;left:0;bottom:0;height:0;width:0;background:transparent} /* no white bar */
+
+    .menu-toggle{display:none;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);padding:10px;border-radius:12px;position:relative;z-index:2002}
+    .menu-toggle svg{width:26px;height:26px;color:#fff;display:block}
+    .menu-toggle .icon-close{display:none}
+    .menu-toggle[aria-expanded="true"] .icon-burger{display:none}
+    .menu-toggle[aria-expanded="true"] .icon-close{display:block}
+
     @media(max-width:900px){
       .menu-toggle{display:inline-flex}
       .nav-links{
-        position:fixed;left:16px;right:16px;top:64px;
-        border:0;border-radius:16px;padding:16px;flex-direction:column;gap:10px;
-        transform:translateY(-20px);opacity:0;pointer-events:none;
-        background:transparent !important;box-shadow:none;backdrop-filter:none;
+        position:fixed;inset:0;z-index:1000;
+        display:flex;flex-direction:column;gap:18px;align-items:stretch;justify-content:flex-start;
+        padding:100px 22px 28px;height:100vh;overflow:auto;
+        background:linear-gradient(180deg,rgba(8,12,20,.78),rgba(8,12,20,.78)) !important;
+        -webkit-backdrop-filter:blur(18px) saturate(140%);backdrop-filter:blur(18px) saturate(140%);
+        transform:translateY(-10px);opacity:0;pointer-events:none;transition:opacity .28s ease, transform .28s ease;
       }
-      .nav-links a{padding:10px 12px;text-shadow:0 1px 2px rgba(0,0,0,.45)}
       .nav-links.open{transform:translateY(0);opacity:1;pointer-events:auto}
+      .nav-links a{
+        font-size:clamp(22px,5.5vw,30px);font-weight:800;padding:16px 14px;border-radius:14px;
+        background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);text-shadow:0 1px 2px rgba(0,0,0,.45)
+      }
+      .nav-links a::after{display:none}
+
+      /* Top-right CLOSE (X) inside drawer */
+      .drawer-close{
+        position:fixed;top:16px;right:16px;z-index:2003;
+        display:inline-flex;align-items:center;justify-content:center;
+        width:42px;height:42px;border-radius:12px;
+        border:1px solid rgba(255,255,255,.18);
+        background:rgba(255,255,255,.10);color:#fff;
+        box-shadow:0 8px 20px rgba(0,0,0,.35);
+        cursor:pointer;transition:transform .2s ease, background .2s ease;
+      }
+      .drawer-close:hover{transform:translateY(-1px);background:rgba(255,255,255,.16)}
+      .drawer-close svg{width:22px;height:22px;display:block}
     }
+    .drawer-close{display:none} /* desktop */
+
     /* ===== /HEADER ===== */
 
     .hero{padding-top:var(--sticky);background:#000}
@@ -84,12 +103,11 @@
 
     /* === CONTACT SECTION === */
     .contact-section{background:#000;padding:64px 0 32px}
-    /* WIDER container ONLY here (so cards are wider equally) */
     .contact-section .container{width:min(100% - 32px,1500px)}
     .cards{
       display:grid;
       grid-template-columns:repeat(3,minmax(0,1fr));
-      gap:clamp(20px,2.5vw,36px);   /* smaller gap => wider cards */
+      gap:clamp(20px,2.5vw,36px);
       margin-bottom:var(--twofinger)
     }
     .card{
@@ -108,11 +126,11 @@
     .direct a{display:inline-block;margin:8px 0;font-weight:800;text-decoration:underline;text-decoration-color:rgba(255,255,255,.2);text-underline-offset:3px}
     .direct .meta{display:block;color:#d9dde7;font-weight:700;margin-top:6px}
 
-    /* Footer */
+    /* ===== FOOTER (same mobile layout & links as index/about) ===== */
     .site-footer{background:#000;color:#fff;border-top:1px solid rgba(255,255,255,.18);padding:60px 0 30px;margin-top:var(--twofinger)}
     .site-footer .container{width:min(100% - 32px,1200px)}
     .footer-wrap{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;padding-bottom:30px}
-    @media(max-width:700px){.footer-wrap{flex-direction:column;align-items:center;gap:14px;text-align:center}.footer-center{order:1}.footer-right{order:2;justify-content:center}.footer-left{order:3}.footer-left a{margin-left:auto;margin-right:auto}}
+    @media(max-width:700px){.footer-wrap{flex-direction:column;align-items:center;gap:34px;text-align:center}.footer-center{order:2}.footer-right{order:3;justify-content:center}.footer-left{order:1}.footer-left a{margin-left:auto;margin-right:auto}}
     .footer-divider{height:1px;background:var(--border);width:100vw;left:50%;transform:translateX(-50%);position:relative;margin:48px 0}
     .footer-left a{display:block;color:#ffffff;margin-bottom:8px;border-bottom:1px solid var(--border);width:max-content;transition:color .2s ease,border-color .2s ease}
     .footer-left a:hover{color:#cfd2ff;border-bottom-color:#cfd2ff}
@@ -130,7 +148,7 @@
   </style>
 </head>
 <body>
-  <!-- NAVBAR (exact from index) -->
+  <!-- NAVBAR (exact fullscreen drawer like index/about) -->
   <header class="site-header" id="top">
     <div class="container nav" role="navigation" aria-label="Main">
       <a class="brand" href="index.html#hero" aria-label="Home">
@@ -164,9 +182,14 @@
         </span>
       </a>
       <button class="menu-toggle" aria-expanded="false" aria-controls="nav-links" aria-label="Open menu">
-        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <svg class="icon-burger" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <svg class="icon-close" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
       </button>
       <nav id="nav-links" class="nav-links" aria-label="Primary">
+        <!-- Drawer close button (mobile) -->
+        <button class="drawer-close hidden" type="button" aria-label="Close menu">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
         <a href="index.html#services">Services</a><a href="index.html#process">Process</a>
         <a href="index.html#work">Case Studies</a><a href="index.html#pricing">Pricing</a>
         <a href="index.html#why">Choos Me</a><a href="about.html">About Me</a><a href="contact.html">Contact</a>
@@ -207,6 +230,7 @@
     </div>
   </section>
 
+  <!-- FOOTER (exact like index/about) -->
   <footer class="site-footer" id="site-footer">
     <div class="container">
       <div class="footer-wrap">
@@ -218,18 +242,15 @@
           <a href="index.html#hero" aria-label="Back to Home">VF</a>
         </div>
         <div class="footer-right">
-          <a href="#" aria-label="Instagram" title="Instagram">
+          <a href="https://www.instagram.com/vizzfluence_/?hl=en" target="_blank" rel="noopener" aria-label="Instagram" title="Instagram">
             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
               <rect x="3" y="3" width="18" height="18" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/>
             </svg>
           </a>
-          <a href="#" aria-label="Facebook" title="Facebook">
+          <a href="https://www.facebook.com/profile.php?id=61580344325129" target="_blank" rel="noopener" aria-label="Facebook" title="Facebook">
             <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M22 12.06C22 6.5 17.52 2 12 2S2 6.5 2 12.06c0 5 3.66 9.14 8.44 9.94v-7.03H7.9v-2.9h2.54V9.85c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56v1.87h2.78l-.44 2.9h-2.34v7.03C18.34 21.2 22 17.06 22 12.06Z"/></svg>
           </a>
-          <a href="#" aria-label="Twitter" title="Twitter">
-            <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M22 5.92c-.75.33-1.54 .55-2.37 .65a4.13 4.13 0 0 0 1.81-2.27c-.8 .47-1.68 .82-2.62 1A4.12 4.12 0 0 0 11.7 9a11.7 11.7 0 0 1-8.5-4.3 4.11 4.11 0 0 0 1.27 5.49c-.64-.02-1.25-.2-1.78-.49v.05c0 2 1.43 3.72 3.33 4.1-.35 .1-.72 .16-1.1 .16-.27 0-.53-.03-.78-.08a4.13 4.13 0 0 0 3.85 2.86A8.27 8.27 0 0 1 2 18.58a11.67 11.67 0 0 0 6.29 1.84c7.55 0 11.68-6.26 11.68-11.7 0-.18 0-.35-.01-.53 .8-.58 1.49-1.3 2.04-2.12Z"/></svg>
-          </a>
-          <a href="#" aria-label="LinkedIn" title="LinkedIn">
+          <a href="https://www.linkedin.com/company/109074172/admin/dashboard/" target="_blank" rel="noopener" aria-label="LinkedIn" title="LinkedIn">
             <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M4.98 3.5C4.98 4.6 4.1 5.5 3 5.5S1.02 4.6 1.02 3.5 1.9 1.5 3 1.5s1.98.9 1.98 2ZM2 8h2v12H2V8Zm6.5 0h1.9v1.7h.03c.26-.5 1.06-1.7 3.1-1.7 3.3 0 3.9 2.1 3.9 4.8V20h-2v-6c0-1.4 0-3.2-2-3.2-2 0-2.3 1.5-2.3 3.1V20h-2V8Z"/></svg>
           </a>
         </div>
@@ -243,28 +264,44 @@
   </footer>
 
   <script>
-    // Mobile menu
+    /* Exact mobile drawer behavior like index/about */
     const toggle=document.querySelector('.menu-toggle');
     const links=document.querySelector('.nav-links');
-    toggle?.addEventListener('click',()=>{const open=links.classList.toggle('open');toggle.setAttribute('aria-expanded',String(open));});
-    links?.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{links.classList.remove('open');toggle.setAttribute('aria-expanded','false');}));
+    const header=document.querySelector('header.site-header');
+    const drawerCloseBtn=document.querySelector('.drawer-close');
 
-    // Auto-hide header like index
-    (function(){
-      const header=document.querySelector('header.site-header');
-      let lastY=window.scrollY, ticking=false;
-      function onScroll(){
-        const y=window.scrollY;
-        const down = y > lastY + 8;
-        const up   = y < lastY - 8;
-        if(down && !links.classList.contains('open')) header.classList.add('hide');
-        else if(up) header.classList.remove('hide');
-        lastY=y; ticking=false;
-      }
-      window.addEventListener('scroll', ()=>{
-        if(!ticking){ requestAnimationFrame(onScroll); ticking=true; }
-      }, {passive:true});
-    })();
+    function openMenu(){
+      links.classList.add('open');
+      toggle.setAttribute('aria-expanded','true');
+      toggle.setAttribute('aria-label','Close menu');
+      document.body.classList.add('no-scroll');
+      header.classList.remove('off');
+      drawerCloseBtn?.classList.remove('hidden');
+    }
+    function closeMenu(){
+      links.classList.remove('open');
+      toggle.setAttribute('aria-expanded','false');
+      toggle.setAttribute('aria-label','Open menu');
+      document.body.classList.remove('no-scroll');
+      updateHeader();
+      drawerCloseBtn?.classList.add('hidden');
+    }
+
+    toggle?.addEventListener('click',()=>{links.classList.contains('open')?closeMenu():openMenu();});
+    drawerCloseBtn?.addEventListener('click',closeMenu);
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&links.classList.contains('open'))closeMenu();});
+
+    links?.querySelectorAll('a').forEach(a=>{
+      a.addEventListener('click',()=>{closeMenu();});
+    });
+
+    function updateHeader(){
+      if(links.classList.contains('open')){header.classList.remove('off');return;}
+      if(window.scrollY>0){header.classList.add('off');}else{header.classList.remove('off');}
+    }
+    updateHeader();
+    window.addEventListener('scroll',updateHeader,{passive:true});
+    window.addEventListener('resize',updateHeader);
   </script>
 </body>
 </html>

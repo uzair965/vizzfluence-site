@@ -37,17 +37,17 @@
     img{display:block;max-width:100%;height:auto}
     a{color:inherit;text-decoration:none}
     .container{width:min(100% - 32px,var(--maxw));margin-inline:auto;background:transparent}
+    .no-scroll{overflow:hidden}
 
-    /* HEADER */
+    /* HEADER — show only at top (or while drawer is open) */
     header.site-header{
-      position:fixed;top:0;left:0;right:0;z-index:90;
+      position:fixed;top:0;left:0;right:0;z-index:300;
       background:transparent !important;border:0 !important;backdrop-filter:none !important;
       transform:translateY(0);transition:transform 260ms ease;will-change:transform;
     }
-    header.site-header.hide{transform:translateY(-120%)}
+    header.site-header.off{transform:translateY(-120%);pointer-events:none}
     .nav{display:flex;align-items:center;justify-content:space-between;padding:14px 0;background:transparent !important}
 
-    /* ===== Brand: VF circular logo (no text) ===== */
     .brand{display:flex;align-items:center;gap:10px;font-weight:800;color:#fff;background:transparent !important}
     .logo{display:inline-grid;place-items:center;width:48px;height:48px}
     .logo svg{width:100%;height:100%;display:block}
@@ -57,35 +57,59 @@
       position:relative;color:#fff;background:transparent !important;padding:8px 0;border-radius:0;
       transition:opacity var(--transition),text-underline-offset var(--transition)
     }
-    .nav-links a::after{
-      content:"";position:absolute;left:50%;bottom:-6px;height:2px;width:24px;
-      background:linear-gradient(90deg,var(--accent),var(--accent-2));
-      transform:translateX(-50%) scaleX(0);transform-origin:center;transition:transform 180ms ease;
-    }
-    .nav-links a:hover{opacity:.9}
-    .nav-links a:hover::after{transform:translateX(-50%) scaleX(1)}
-    .menu-toggle{display:none;background:transparent;border:0;padding:8px}
-    .menu-toggle svg{width:26px;height:26px;color:#fff}
+    /* removed tiny underline */
+    .nav-links a::after{content:"";position:absolute;left:0;bottom:0;height:0;width:0;background:transparent}
+
+    /* Hide drawer close button on desktop */
+    .drawer-close{display:none}
+
+    /* Toggle button (burger/close) in header */
+    .menu-toggle{display:none;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);padding:10px;border-radius:12px}
+    .menu-toggle svg{width:26px;height:26px;color:#fff;display:block}
+    .menu-toggle .icon-close{display:none}
+    .menu-toggle[aria-expanded="true"] .icon-burger{display:none}
+    .menu-toggle[aria-expanded="true"] .icon-close{display:block}
+
+    /* FULLSCREEN MOBILE DRAWER */
     @media(max-width:900px){
       .menu-toggle{display:inline-flex}
       .nav-links{
-        position:fixed;left:16px;right:16px;top:64px;
-        border:0;border-radius:16px;padding:16px;flex-direction:column;gap:10px;
-        transform:translateY(-20px);opacity:0;pointer-events:none;
-        background:transparent !important;box-shadow:none;backdrop-filter:none;
+        position:fixed;inset:0;z-index:1000;
+        display:flex;flex-direction:column;gap:18px;align-items:stretch;justify-content:flex-start;
+        padding:100px 22px 28px;height:100vh;overflow:auto;
+        background:linear-gradient(180deg,rgba(8,12,20,.78),rgba(8,12,20,.78)) !important;
+        -webkit-backdrop-filter:blur(18px) saturate(140%);backdrop-filter:blur(18px) saturate(140%);
+        transform:translateY(-10px);opacity:0;pointer-events:none;transition:opacity .28s ease, transform .28s ease;
       }
-      .nav-links a{padding:10px 12px;text-shadow:0 1px 2px rgba(0,0,0,.45)}
       .nav-links.open{transform:translateY(0);opacity:1;pointer-events:auto}
+      .nav-links a{
+        font-size:clamp(22px,5.5vw,30px);font-weight:800;padding:16px 14px;border-radius:14px;
+        background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);text-shadow:0 1px 2px rgba(0,0,0,.45)
+      }
+      .nav-links a::after{display:none}
+
+      /* Drawer close button (inside overlay) */
+      .drawer-close{
+        position:fixed;top:16px;right:16px;z-index:1100;
+        display:inline-flex;align-items:center;justify-content:center;
+        width:42px;height:42px;border-radius:12px;
+        border:1px solid rgba(255,255,255,.18);
+        background:rgba(255,255,255,.10);color:#fff;
+        box-shadow:0 8px 20px rgba(0,0,0,.35);
+        cursor:pointer;transition:transform .2s ease, background .2s ease;
+      }
+      .drawer-close:hover{transform:translateY(-1px);background:rgba(255,255,255,.16)}
+      .drawer-close svg{width:22px;height:22px;display:block}
+      .drawer-close.hidden{display:none}
     }
 
-    /* Buttons (for pricing) */
     .btn{display:inline-flex;align-items:center;gap:10px;padding:12px 16px;border:1px solid transparent;border-radius:10px;
       background:linear-gradient(90deg,var(--accent),#9b6bff);color:#fff;font-weight:700;box-shadow:var(--shadow);transition:transform var(--transition),box-shadow var(--transition)}
     .btn:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(124,92,255,.35)}
     .btn.alt{background:linear-gradient(90deg,rgba(255,255,255,.06),rgba(255,255,255,.03));color:#fff;border-color:var(--border)}
     .btn.alt:hover{background:rgba(255,255,255,.08)}
 
-    /* HERO — darker & taller so Services is next on scroll */
+    /* HERO */
     #hero{
       text-align:center;
       padding:calc(var(--section-pad) + var(--sticky)) 0 calc(var(--section-pad) * 1.25);
@@ -158,12 +182,8 @@
     }
 
     /* PRICING layout */
-    .pricing.cards{
-      display:flex;justify-content:center;align-items:stretch;gap:56px;flex-wrap:nowrap;margin-top:40px;
-    }
-    .pricing.cards .card{
-      grid-column:auto;flex:0 0 320px;max-width:320px;text-align:left;display:flex;flex-direction:column;
-    }
+    .pricing.cards{display:flex;justify-content:center;align-items:stretch;gap:56px;flex-wrap:nowrap;margin-top:40px;}
+    .pricing.cards .card{grid-column:auto;flex:0 0 320px;max-width:320px;text-align:left;display:flex;flex-direction:column;}
     .pricing.cards .btn{display:inline-flex;align-self:center;margin-top:28px;margin-bottom:8px}
     @media(max-width:1100px){.pricing.cards{flex-wrap:wrap}}
 
@@ -178,40 +198,65 @@
       border-bottom:1px solid rgba(255,255,255,0.06);
       padding:var(--section-pad) 0;
     }
-    .marquee{
-      overflow:hidden;position:relative;margin-top:18px;
+    .marquee{overflow:hidden;position:relative;margin-top:18px;
       -webkit-mask-image:linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
-              mask-image:linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
-    }
+              mask-image:linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);}
     .marquee-track{display:flex;gap:16px;width:max-content;animation:marquee 36s linear infinite;will-change:transform}
     .marquee-track.fast{animation-duration:30s}
     @keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
-    .pill{
-      flex:0 0 auto;padding:12px 20px;border-radius:999px;
+    .pill{flex:0 0 auto;padding:12px 20px;border-radius:999px;
       background:linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06));
       border:1px solid rgba(255,255,255,0.16);
       box-shadow:inset 0 1px 0 rgba(255,255,255,0.18), 0 6px 18px rgba(0,0,0,0.28);
       font-weight:700;white-space:nowrap;backdrop-filter:saturate(120%) blur(2px);
-      transition:transform .25s var(--transition), box-shadow .25s var(--transition), background .25s var(--transition);
-    }
+      transition:transform .25s var(--transition), box-shadow .25s var(--transition), background .25s var(--transition);}
     .pill:hover{transform:translateY(-3px);background:linear-gradient(90deg, rgba(124,92,255,0.55), rgba(0,209,178,0.55));box-shadow:0 10px 26px rgba(124,92,255,0.35)}
     .marquee:hover .marquee-track{animation-play-state:paused}
     @media(prefers-reduced-motion:reduce){.marquee-track{animation:none}}
 
-    /* HIDE testimonials (removed) */
     #testimonials{display:none}
     .testimonials{display:none}
 
-    /* FOOTER */
+    /* WHY */
+    #why{
+      background:
+        radial-gradient(800px 520px at 8% 12%, rgba(124,92,255,.16), transparent 60%),
+        radial-gradient(700px 520px at 92% 8%, rgba(0,209,178,.14), transparent 60%),
+        linear-gradient(180deg, rgba(12,18,28,0.15), rgba(12,18,28,0.55));
+      border-top:1px solid rgba(255,255,255,.06);
+      border-bottom:1px solid rgba(255,255,255,.06);
+    }
+    .why-wrap{margin-top:20px}
+    .why-scroller{overflow:hidden; position:relative;
+      -webkit-mask-image:linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+              mask-image:linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);}
+    .why-track{display:flex; gap:16px; width:max-content; animation: why-marquee 40s linear infinite; will-change: transform;}
+    @keyframes why-marquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+    .why-scroller:hover .why-track{animation-play-state:paused}
+    .why-card{flex:0 0 360px;background:linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.04));border:1px solid rgba(255,255,255,.14);border-radius:18px;padding:20px;box-shadow:0 8px 26px rgba(0,0,0,.30);scroll-snap-align:center;transform: translateY(10px) scale(.98);opacity:0;}
+    .why-card.why-in{opacity:1; transform: translateY(0) scale(1);transition: transform .6s cubic-bezier(.2,.8,.2,1), opacity .6s ease, box-shadow .3s ease;}
+    .why-card:hover{ transform: translateY(-6px) scale(1.01); box-shadow:0 16px 40px rgba(124,92,255,.35)}
+    .why-top{display:flex; align-items:center; gap:12px; margin-bottom:8px;}
+    .why-ic{width:38px;height:38px;display:grid;place-items:center;border-radius:12px;background:linear-gradient(180deg, rgba(124,92,255,.35), rgba(124,92,255,.15));border:1px solid rgba(255,255,255,.14);font-size:18px;box-shadow: inset 0 0 0 1px rgba(0,0,0,.18);}
+    .why-title{margin:0;font-weight:800}
+    .why-desc{color:var(--muted);margin:6px 0 0}
+    @keyframes why-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+    .why-card.float{animation: why-float 6s ease-in-out infinite}
+    @media(max-width:768px){
+      .why-scroller{overflow:auto; -webkit-overflow-scrolling:touch; scroll-snap-type:x mandatory; -webkit-mask-image:none; mask-image:none;}
+      .why-track{animation:none; width:auto}
+      .why-card{scroll-snap-align:center; min-width:85%}
+    }
+    /* Permanent mobile slider bar (full travel; fixed thumb size) */
+    .why-progress{display:none}
+    @media(max-width:768px){
+      .why-progress{display:block;height:6px;border-radius:999px;background:rgba(255,255,255,.18);margin-top:18px;position:relative;overflow:hidden}
+      .why-progress .bar{position:absolute;left:0;top:0;height:100%;width:14%;background:linear-gradient(90deg,var(--accent),var(--accent-2));box-shadow:0 4px 12px rgba(124,92,255,.35)}
+    }
+
+    /* FOOTER (desktop default) */
     .site-footer{background:#000;color:#fff;border-top:1px solid rgba(255,255,255,.18);padding:60px 0 30px}
     .footer-wrap{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;padding-bottom:30px}
-    @media(max-width:700px){
-      .footer-wrap{flex-direction:column;align-items:center;gap:14px;text-align:center}
-      .footer-center{order:1}
-      .footer-right{order:2;justify-content:center}
-      .footer-left{order:3}
-      .footer-left a{margin-left:auto;margin-right:auto}
-    }
     .footer-divider{height:1px;background:rgba(255,255,255,.35);width:100vw;left:50%;transform:translateX(-50%);position:relative;margin:48px 0}
     .footer-left a{display:block;color:#ffffff;margin-bottom:8px;border-bottom:1px solid rgba(255,255,255,.35);width:max-content;transition:color .2s ease,border-color .2s ease}
     .footer-left a:hover{color:#cfd2ff;border-bottom-color:#cfd2ff}
@@ -226,13 +271,21 @@
     .foot-bottom p{margin:6px 0}
     .foot-bottom a{color:#ffffff;margin:0 8px;text-decoration:underline;text-decoration-color:#000000;text-decoration-thickness:1px;text-underline-offset:3px;transition:color .2s ease}
     .foot-bottom a:hover{color:#cfd2ff;text-decoration-color:#000000}
+    /* Footer layout only on mobile (logo center, email/phone above, socials under; bigger gap) */
+    @media(max-width:700px){
+      .footer-wrap{flex-direction:column;align-items:center;gap:34px;text-align:center}
+      .footer-left{order:1}
+      .footer-center{order:2}
+      .footer-right{order:3;justify-content:center}
+      .footer-left a{margin-left:auto;margin-right:auto}
+    }
 
     /* Reveal */
     [data-reveal]{opacity:0;transform:translateY(14px);transition:opacity 600ms ease,transform 600ms ease}
     [data-reveal].is-visible{opacity:1;transform:none}
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}[data-reveal]{transition:none}}
 
-    /* SERVICES */
+    /* SERVICES visual extras */
     #services{position:relative;overflow:clip;}
     #services::before{
       content:""; position:absolute; inset:-12% 0 -8% 0; pointer-events:none;
@@ -246,7 +299,6 @@
     .svc-grid{display:grid; gap: clamp(16px, 2.2vw, 28px); grid-template-columns: repeat(12,1fr); margin-top: 28px;}
     @media (max-width:1000px){ .svc-grid{ grid-template-columns: repeat(8,1fr);} }
     @media (max-width:700px){  .svc-grid{ grid-template-columns: repeat(4,1fr);} }
-
     .svc-card{
       grid-column: span 4; position:relative; border-radius: 18px;
       background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.035));
@@ -273,7 +325,7 @@
       transform: translateZ(35px);
       animation: svc-float 6s ease-in-out infinite;
     }
-    @keyframes svc-float{0%,100%{transform:translateZ(35px) translateY(0)}50%{transform:translateZ(35px) translateY(-6px)}}
+    @keyframes svc-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
     .svc-card:hover .svc-icon{ animation: svc-pop .9s ease both; }
     @keyframes svc-pop{0%{transform:translateZ(35px) scale(1)}35%{transform:translateZ(35px) scale(1.15)}70%{transform:translateZ(35px) scale(.96)}100%{transform:translateZ(35px) scale(1)}}
     .svc-title{ margin:14px 0 10px; font-weight:800; font-size: clamp(18px,1.7vw,22px); }
@@ -286,62 +338,6 @@
     @media (prefers-reduced-motion: reduce){
       .svc-card, [data-svc-card]{ transition:none !important; animation:none !important; transform:none !important; opacity:1 !important }
     }
-
-    /* WHY — auto-scrolling track */
-    #why{
-      background:
-        radial-gradient(800px 520px at 8% 12%, rgba(124,92,255,.16), transparent 60%),
-        radial-gradient(700px 520px at 92% 8%, rgba(0,209,178,.14), transparent 60%),
-        linear-gradient(180deg, rgba(12,18,28,0.15), rgba(12,18,28,0.55));
-      border-top:1px solid rgba(255,255,255,.06);
-      border-bottom:1px solid rgba(255,255,255,.06);
-    }
-    .why-wrap{margin-top:20px}
-    .why-scroller{
-      overflow:hidden; position:relative;
-      -webkit-mask-image:linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
-              mask-image:linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
-    }
-    .why-track{
-      display:flex; gap:16px; width:max-content;
-      animation: why-marquee 40s linear infinite;
-      will-change: transform;
-    }
-    @keyframes why-marquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
-    .why-scroller:hover .why-track{animation-play-state:paused}
-    .why-card{
-      flex:0 0 360px;
-      background:linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.04));
-      border:1px solid rgba(255,255,255,.14);
-      border-radius:18px;
-      padding:20px;
-      box-shadow:0 8px 26px rgba(0,0,0,.30);
-      scroll-snap-align:center;
-      transform: translateY(10px) scale(.98);
-      opacity:0;
-    }
-    .why-card.why-in{
-      opacity:1; transform: translateY(0) scale(1);
-      transition: transform .6s cubic-bezier(.2,.8,.2,1), opacity .6s ease, box-shadow .3s ease;
-    }
-    .why-card:hover{ transform: translateY(-6px) scale(1.01); box-shadow:0 16px 40px rgba(124,92,255,.35)}
-    .why-top{display:flex; align-items:center; gap:12px; margin-bottom:8px;}
-    .why-ic{
-      width:38px;height:38px;display:grid;place-items:center;border-radius:12px;
-      background:linear-gradient(180deg, rgba(124,92,255,.35), rgba(124,92,255,.15));
-      border:1px solid rgba(255,255,255,.14);
-      font-size:18px;
-      box-shadow: inset 0 0 0 1px rgba(0,0,0,.18);
-    }
-    .why-title{margin:0;font-weight:800}
-    .why-desc{color:var(--muted);margin:6px 0 0}
-    @keyframes why-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-    .why-card.float{animation: why-float 6s ease-in-out infinite}
-    @media(max-width:768px){
-      .why-scroller{overflow:auto; -webkit-overflow-scrolling:touch; scroll-snap-type:x mandatory;}
-      .why-track{animation:none; width:auto}
-      .why-card{scroll-snap-align:center; min-width:85%}
-    }
   </style>
 </head>
 <body>
@@ -350,57 +346,31 @@
     <div class="container nav" role="navigation" aria-label="Main">
       <a class="brand" href="#hero" aria-label="Home">
         <span class="logo" aria-hidden="true">
-          <!-- ==== CLEARER Animated VF logo (thicker F, contrasting color, dark disc behind for readability) ==== -->
           <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="VF monogram">
             <defs>
-              <!-- separate gradients for V and F so F pops -->
-              <linearGradient id="gradV" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0" stop-color="#7c5cff"/>
-                <stop offset="1" stop-color="#00d1b2"/>
-              </linearGradient>
-              <linearGradient id="gradF" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0" stop-color="#9be7ff"/>
-                <stop offset="1" stop-color="#58a6ff"/>
-              </linearGradient>
-              <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
-                <feGaussianBlur in="SourceGraphic" stdDeviation="1.6" result="b"/>
-                <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-              </filter>
+              <linearGradient id="gradV" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7c5cff"/><stop offset="1" stop-color="#00d1b2"/></linearGradient>
+              <linearGradient id="gradF" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9be7ff"/><stop offset="1" stop-color="#58a6ff"/></linearGradient>
+              <filter id="glow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur in="SourceGraphic" stdDeviation="1.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
             </defs>
-
-            <!-- subtle dark disc so letters are always legible on any hero photo -->
             <circle cx="32" cy="32" r="28" fill="rgba(8,12,20,.65)" />
-
-            <!-- outer loop ring -->
             <circle cx="32" cy="32" r="27" fill="none" stroke="url(#gradV)" stroke-opacity=".25" stroke-width="2"/>
-            <!-- rotating dash ring -->
-            <circle cx="32" cy="32" r="27" fill="none" stroke="url(#gradF)" stroke-width="2.2" stroke-dasharray="14 168" stroke-linecap="round">
-              <animateTransform attributeName="transform" type="rotate" from="0 32 32" to="360 32 32" dur="7s" repeatCount="indefinite"/>
-            </circle>
-
-            <!-- V (kept elegant) -->
-            <path d="M12 16l16 32c1.25 2.5 4.4 2.5 5.65 0L52 16"
-                  fill="none" stroke="url(#gradV)" stroke-width="6.8" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)"/>
-
-            <!-- F: thicker + bright gradient + thin outline to stand out -->
-            <!-- Underlay (thicker) -->
-            <path d="M41.5 15.5v33M41.5 15.5h11M41.5 28h9"
-                  fill="none" stroke="url(#gradF)" stroke-width="7.6" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)"/>
-            <!-- Crisp inner stroke for definition -->
-            <path d="M41.5 15.5v33M41.5 15.5h11M41.5 28h9"
-                  fill="none" stroke="#e9f7ff" stroke-opacity=".9" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
-
-            <!-- orbiting dot -->
-            <circle cx="32" cy="4.5" r="2.2" fill="#58a6ff">
-              <animateTransform attributeName="transform" type="rotate" from="0 32 32" to="360 32 32" dur="3.6s" repeatCount="indefinite"/>
-            </circle>
+            <circle cx="32" cy="32" r="27" fill="none" stroke="url(#gradF)" stroke-width="2.2" stroke-dasharray="14 168" stroke-linecap="round"><animateTransform attributeName="transform" type="rotate" from="0 32 32" to="360 32 32" dur="7s" repeatCount="indefinite"/></circle>
+            <path d="M12 16l16 32c1.25 2.5 4.4 2.5 5.65 0L52 16" fill="none" stroke="url(#gradV)" stroke-width="6.8" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)"/>
+            <path d="M41.5 15.5v33M41.5 15.5h11M41.5 28h9" fill="none" stroke="url(#gradF)" stroke-width="7.6" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)"/>
+            <path d="M41.5 15.5v33M41.5 15.5h11M41.5 28h9" fill="none" stroke="#e9f7ff" stroke-opacity=".9" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="32" cy="4.5" r="2.2" fill="#58a6ff"><animateTransform attributeName="transform" type="rotate" from="0 32 32" to="360 32 32" dur="3.6s" repeatCount="indefinite"/></circle>
           </svg>
         </span>
       </a>
       <button class="menu-toggle" aria-expanded="false" aria-controls="nav-links" aria-label="Open menu">
-        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <svg class="icon-burger" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <svg class="icon-close" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
       </button>
       <nav id="nav-links" class="nav-links" aria-label="Primary">
+        <!-- Drawer close button (visible only on mobile) -->
+        <button class="drawer-close hidden" type="button" aria-label="Close menu">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
         <a href="#services">Services</a><a href="#process">Process</a>
         <a href="#work">Case Studies</a><a href="#pricing">Pricing</a>
         <a href="#why">Choos Me</a><a href="about.html">About Me</a><a href="contact.html">Contact</a>
@@ -415,7 +385,6 @@
         <div class="eyebrow" data-reveal>Creator Discovery • Vetting • Outreach</div>
         <h1 class="h1" id="hero-title" data-reveal>We connect brands with the right influencers—and get replies that convert.</h1>
         <p class="lead" data-reveal>From smart discovery to deep fake-follower checks and bulletproof outreach, Vizzfluence delivers shortlists and conversations that save your team weeks of busywork.</p>
-        <!-- (CTA buttons removed by request) -->
         <div class="stat-row" aria-label="Key results">
           <div class="stat" data-reveal><div class="num" data-counter="312">0</div><div class="label">Creators vetted last 12 months</div></div>
           <div class="stat" data-reveal><div class="num" data-counter="37">0</div><div class="label">Avg. outreach reply rate (%)</div></div>
@@ -430,55 +399,13 @@
     <div class="container svc-wrap">
       <h2 class="section-title" data-reveal>Services that remove the guesswork</h2>
       <p class="section-desc" data-reveal>I combine audience data, fraud checks, and human research to find creators your customers actually trust—then handle outreach and negotiation to make it happen.</p>
-
       <div class="svc-grid">
-        <article class="svc-card" data-svc-card>
-          <div class="svc-inner">
-            <span class="svc-icon" aria-hidden="true">🔎</span>
-            <h3 class="svc-title">Influencer Discovery</h3>
-            <p class="svc-copy">Multi-platform research (YouTube, Instagram, TikTok, Twitch, podcasts) with niche match and audience overlap analysis.</p>
-          </div>
-        </article>
-
-        <article class="svc-card" data-svc-card>
-          <div class="svc-inner">
-            <span class="svc-icon" aria-hidden="true">🧪</span>
-            <h3 class="svc-title">Vetting &amp; Brand Safety</h3>
-            <p class="svc-copy">Fake follower and engagement audit, sentiment, content quality, brand fit, past sponsors, and risk screens.</p>
-          </div>
-        </article>
-
-        <article class="svc-card" data-svc-card>
-          <div class="svc-inner">
-            <span class="svc-icon" aria-hidden="true">💌</span>
-            <h3 class="svc-title">Outreach &amp; Negotiation</h3>
-            <p class="svc-copy">Personalized outreach that gets replies, rate benchmarking, deliverables scoping, and closing the deal.</p>
-          </div>
-        </article>
-
-        <article class="svc-card" data-svc-card>
-          <div class="svc-inner">
-            <span class="svc-icon" aria-hidden="true">📊</span>
-            <h3 class="svc-title">Tracking &amp; Reporting</h3>
-            <p class="svc-copy">Clickable CRM, UTM setup, and post-campaign performance dashboards with learnings for scale.</p>
-          </div>
-        </article>
-
-        <article class="svc-card" data-svc-card>
-          <div class="svc-inner">
-            <span class="svc-icon" aria-hidden="true">🧭</span>
-            <h3 class="svc-title">Strategy &amp; Playbooks</h3>
-            <p class="svc-copy">Brief templates, outreach scripts, and internal SOPs so your team can move fast without breaking things.</p>
-          </div>
-        </article>
-
-        <article class="svc-card" data-svc-card>
-          <div class="svc-inner">
-            <span class="svc-icon" aria-hidden="true">🤝</span>
-            <h3 class="svc-title">Talent Relations</h3>
-            <p class="svc-copy">Ongoing creator relationships, renewals, and calendar management to build repeatable wins.</p>
-          </div>
-        </article>
+        <article class="svc-card" data-svc-card><div class="svc-inner"><span class="svc-icon" aria-hidden="true">🔎</span><h3 class="svc-title">Influencer Discovery</h3><p class="svc-copy">Multi-platform research (YouTube, Instagram, TikTok, Twitch, podcasts) with niche match and audience overlap analysis.</p></div></article>
+        <article class="svc-card" data-svc-card><div class="svc-inner"><span class="svc-icon" aria-hidden="true">🧪</span><h3 class="svc-title">Vetting &amp; Brand Safety</h3><p class="svc-copy">Fake follower and engagement audit, sentiment, content quality, brand fit, past sponsors, and risk screens.</p></div></article>
+        <article class="svc-card" data-svc-card><div class="svc-inner"><span class="svc-icon" aria-hidden="true">💌</span><h3 class="svc-title">Outreach &amp; Negotiation</h3><p class="svc-copy">Personalized outreach that gets replies, rate benchmarking, deliverables scoping, and closing the deal.</p></div></article>
+        <article class="svc-card" data-svc-card><div class="svc-inner"><span class="svc-icon" aria-hidden="true">📊</span><h3 class="svc-title">Tracking &amp; Reporting</h3><p class="svc-copy">Clickable CRM, UTM setup, and post-campaign performance dashboards with learnings for scale.</p></div></article>
+        <article class="svc-card" data-svc-card><div class="svc-inner"><span class="svc-icon" aria-hidden="true">🧭</span><h3 class="svc-title">Strategy &amp; Playbooks</h3><p class="svc-copy">Brief templates, outreach scripts, and internal SOPs so your team can move fast without breaking things.</p></div></article>
+        <article class="svc-card" data-svc-card><div class="svc-inner"><span class="svc-icon" aria-hidden="true">🤝</span><h3 class="svc-title">Talent Relations</h3><p class="svc-copy">Ongoing creator relationships, renewals, and calendar management to build repeatable wins.</p></div></article>
       </div>
     </div>
   </section>
@@ -503,7 +430,6 @@
     <div class="container">
       <h2 class="section-title" data-reveal>Case studies</h2>
       <p class="section-desc" data-reveal>Recent projects across Beauty, Tech, Gaming, and Finance. Filter by niche below.</p>
-
       <div class="filter" role="tablist" aria-label="Case study filters">
         <button class="active" data-filter="all" role="tab" aria-selected="true">All</button>
         <button data-filter="beauty" role="tab">Beauty</button>
@@ -511,75 +437,11 @@
         <button data-filter="gaming" role="tab">Gaming</button>
         <button data-filter="finance" role="tab">Finance</button>
       </div>
-
       <div class="cases">
-        <article class="case-card" data-category="beauty" data-reveal>
-          <div class="case-media">
-            <img src="https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=1600&auto=format&fit=crop" alt="Beauty creators filming skincare content" loading="lazy" />
-            <span class="label">BEAUTY • UGC + YouTube</span>
-          </div>
-          <div class="case-body">
-            <h3>Clean skincare launch (US/UK)</h3>
-            <p class="section-desc">15 creators (IG+YT). Focus on derm-vetted content and honest routines.</p>
-            <div class="tag-row"><span class="tag">Brand safety A+</span><span class="tag">Avg ER 4.1%</span><span class="tag">CPV $0.02</span></div>
-            <div class="metrics">
-              <div class="metric"><div class="kpi">+68%</div><div class="muted">Traffic</div></div>
-              <div class="metric"><div class="kpi">37%</div><div class="muted">Reply rate</div></div>
-              <div class="metric"><div class="kpi">$35k</div><div class="muted">Spend</div></div>
-            </div>
-          </div>
-        </article>
-
-        <article class="case-card" data-category="tech" data-reveal>
-          <div class="case-media">
-            <img src="https://images.unsplash.com/photo-1553877522-43269d4ea984?q=80&w=1600&auto=format&fit=crop" alt="Tech creator working on productivity setup" loading="lazy" />
-            <span class="label">TECH • YouTube + Podcast</span>
-          </div>
-          <div class="case-body">
-            <h3>Productivity app with creators</h3>
-            <p class="section-desc">7 YouTube integrations + 3 podcast reads across productivity and indie-dev niches.</p>
-            <div class="tag-row"><span class="tag">Zero fraud</span><span class="tag">US/DE/IN</span><span class="tag">B2C SaaS</span></div>
-            <div class="metrics">
-              <div class="metric"><div class="kpi">-34%</div><div class="muted">CAC</div></div>
-              <div class="metric"><div class="kpi">3.2x</div><div class="muted">ROAS</div></div>
-              <div class="metric"><div class="kpi">12</div><div class="muted">Partners</div></div>
-            </div>
-          </div>
-        </article>
-
-        <article class="case-card" data-category="gaming" data-reveal>
-          <div class="case-media">
-            <img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1600&auto=format&fit=crop" alt="Twitch streamer with neon setup" loading="lazy" />
-            <span class="label">GAMING • Twitch</span>
-          </div>
-          <div class="case-body">
-            <h3>Indie game beta signups</h3>
-            <p class="section-desc">Twitch mid-tier streamers + Discord activations. Performance-based payouts.</p>
-            <div class="tag-row"><span class="tag">CPI $1.10</span><span class="tag">NA/EU</span><span class="tag">Discord</span></div>
-            <div class="metrics">
-              <div class="metric"><div class="kpi">+11k</div><div class="muted">Signups</div></div>
-              <div class="metric"><div class="kpi">2.8%</div><div class="muted">CTR</div></div>
-              <div class="metric"><div class="kpi">19</div><div class="muted">Creators</div></div>
-            </div>
-          </div>
-        </article>
-
-        <article class="case-card" data-category="finance" data-reveal>
-          <div class="case-media">
-            <img src="https://images.unsplash.com/photo-1542744173-05336fcc7ad4?q=80&w=1600&auto=format&fit=crop" alt="Financial content filming setup" loading="lazy" />
-            <span class="label">FINANCE • Instagram</span>
-          </div>
-          <div class="case-body">
-            <h3>Fin-ed content for Gen Z</h3>
-            <p class="section-desc">IG reels + carousels with compliance-friendly scripts and disclosures.</p>
-            <div class="tag-row"><span class="tag">Approval-ready</span><span class="tag">Safe topics</span><span class="tag">ER 5.2%</span></div>
-            <div class="metrics">
-              <div class="metric"><div class="kpi">+92%</div><div class="muted">Saves</div></div>
-              <div class="metric"><div class="kpi">4.7x</div><div class="muted">Reach</div></div>
-              <div class="metric"><div class="kpi">10</div><div class="muted">Creators</div></div>
-            </div>
-          </div>
-        </article>
+        <article class="case-card" data-category="beauty" data-reveal><div class="case-media"><img src="https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=1600&auto=format&fit=crop" alt="Beauty creators filming skincare content" loading="lazy" /><span class="label">BEAUTY • UGC + YouTube</span></div><div class="case-body"><h3>Clean skincare launch (US/UK)</h3><p class="section-desc">15 creators (IG+YT). Focus on derm-vetted content and honest routines.</p><div class="tag-row"><span class="tag">Brand safety A+</span><span class="tag">Avg ER 4.1%</span><span class="tag">CPV $0.02</span></div><div class="metrics"><div class="metric"><div class="kpi">+68%</div><div class="muted">Traffic</div></div><div class="metric"><div class="kpi">37%</div><div class="muted">Reply rate</div></div><div class="metric"><div class="kpi">$35k</div><div class="muted">Spend</div></div></div></div></article>
+        <article class="case-card" data-category="tech" data-reveal><div class="case-media"><img src="https://images.unsplash.com/photo-1553877522-43269d4ea984?q=80&w=1600&auto=format&fit=crop" alt="Tech creator working on productivity setup" loading="lazy" /><span class="label">TECH • YouTube + Podcast</span></div><div class="case-body"><h3>Productivity app with creators</h3><p class="section-desc">7 YouTube integrations + 3 podcast reads across productivity and indie-dev niches.</p><div class="tag-row"><span class="tag">Zero fraud</span><span class="tag">US/DE/IN</span><span class="tag">B2C SaaS</span></div><div class="metrics"><div class="metric"><div class="kpi">-34%</div><div class="muted">CAC</div></div><div class="metric"><div class="kpi">3.2x</div><div class="muted">ROAS</div></div><div class="metric"><div class="kpi">12</div><div class="muted">Partners</div></div></div></div></article>
+        <article class="case-card" data-category="gaming" data-reveal><div class="case-media"><img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1600&auto=format&fit=crop" alt="Twitch streamer with neon setup" loading="lazy" /><span class="label">GAMING • Twitch</span></div><div class="case-body"><h3>Indie game beta signups</h3><p class="section-desc">Twitch mid-tier streamers + Discord activations. Performance-based payouts.</p><div class="tag-row"><span class="tag">CPI $1.10</span><span class="tag">NA/EU</span><span class="tag">Discord</span></div><div class="metrics"><div class="metric"><div class="kpi">+11k</div><div class="muted">Signups</div></div><div class="metric"><div class="kpi">2.8%</div><div class="muted">CTR</div></div><div class="metric"><div class="kpi">19</div><div class="muted">Creators</div></div></div></div></article>
+        <article class="case-card" data-category="finance" data-reveal><div class="case-media"><img src="https://images.unsplash.com/photo-1542744173-05336fcc7ad4?q=80&w=1600&auto=format&fit=crop" alt="Financial content filming setup" loading="lazy" /><span class="label">FINANCE • Instagram</span></div><div class="case-body"><h3>Fin-ed content for Gen Z</h3><p class="section-desc">IG reels + carousels with compliance-friendly scripts and disclosures.</p><div class="tag-row"><span class="tag">Approval-ready</span><span class="tag">Safe topics</span><span class="tag">ER 5.2%</span></div><div class="metrics"><div class="metric"><div class="kpi">+92%</div><div class="muted">Saves</div></div><div class="metric"><div class="kpi">4.7x</div><div class="muted">Reach</div></div><div class="metric"><div class="kpi">10</div><div class="muted">Creators</div></div></div></div></article>
       </div>
     </div>
   </section>
@@ -589,7 +451,6 @@
     <div class="container">
       <h2 class="section-title" id="tn-title" data-reveal>Tools & Niches I Use & Cover</h2>
       <p class="section-desc" data-reveal>Key tools I rely on and niches I’ve successfully executed campaigns in.</p>
-
       <h3 style="margin-top:20px">🔧 Tools</h3>
       <div class="marquee" aria-label="Tools scroller" data-reveal>
         <div class="marquee-track">
@@ -601,7 +462,6 @@
           <div class="pill">Notion</div><div class="pill">ClickUp</div>
         </div>
       </div>
-
       <h3 style="margin-top:30px">🌍 Niches</h3>
       <div class="marquee" aria-label="Niches scroller" data-reveal>
         <div class="marquee-track fast">
@@ -624,21 +484,9 @@
       <h2 class="section-title" data-reveal>Packages</h2>
       <p class="section-desc" data-reveal>Transparent options. Custom scopes available.</p>
       <div class="pricing cards">
-        <article class="card" data-reveal><h3>Starter</h3><div class="price">$899</div>
-          <ul class="features" style="margin:0;padding-left:18px;color:var(--muted)">
-            <li>Longlist (50–80 creators)</li><li>Top 10 shortlist with notes</li><li>Basic fraud & safety checks</li><li>1 round of revisions</li>
-          </ul><a class="btn" href="contact.html">Choose Starter</a>
-        </article>
-        <article class="card" data-reveal><h3>Pro</h3><div class="price">$1,900</div>
-          <ul class="features" style="margin:0;padding-left:18px;color:var(--muted)">
-            <li>Longlist (120+ creators)</li><li>Shortlist 20–30 with fit scores</li><li>Deep fraud & audience analysis</li><li>Personalized outreach (first 30)</li>
-          </ul><a class="btn" href="contact.html">Choose Pro</a>
-        </article>
-        <article class="card" data-reveal><h3>Scale</h3><div class="price">Custom</div>
-          <ul class="features" style="margin:0;padding-left:18px;color:var(--muted)">
-            <li>Channel mix strategy</li><li>Contracting & negotiations</li><li>Ongoing creator relations</li><li>Reporting & dashboards</li>
-          </ul><a class="btn" href="contact.html">Talk to me</a>
-        </article>
+        <article class="card" data-reveal><h3>Starter</h3><div class="price">$899</div><ul class="features" style="margin:0;padding-left:18px;color:var(--muted)"><li>Longlist (50–80 creators)</li><li>Top 10 shortlist with notes</li><li>Basic fraud & safety checks</li><li>1 round of revisions</li></ul><a class="btn" href="contact.html">Choose Starter</a></article>
+        <article class="card" data-reveal><h3>Pro</h3><div class="price">$1,900</div><ul class="features" style="margin:0;padding-left:18px;color:var(--muted)"><li>Longlist (120+ creators)</li><li>Shortlist 20–30 with fit scores</li><li>Deep fraud & audience analysis</li><li>Personalized outreach (first 30)</li></ul><a class="btn" href="contact.html">Choose Pro</a></article>
+        <article class="card" data-reveal><h3>Scale</h3><div class="price">Custom</div><ul class="features" style="margin:0;padding-left:18px;color:var(--muted)"><li>Channel mix strategy</li><li>Contracting & negotiations</li><li>Ongoing creator relations</li><li>Reporting & dashboards</li></ul><a class="btn" href="contact.html">Talk to me</a></article>
       </div>
     </div>
   </section>
@@ -647,65 +495,25 @@
   <section id="why">
     <div class="container">
       <h2 class="section-title" data-reveal>Why to work with me</h2>
-      <p class="section-desc" data-reveal>
-        Outcome-focused research, rigorous vetting, and outreach that actually gets replies — packaged with clean reporting so stakeholders say “yes” faster.
-      </p>
-
+      <p class="section-desc" data-reveal>Outcome-focused research, rigorous vetting, and outreach that actually gets replies — packaged with clean reporting so stakeholders say “yes” faster.</p>
       <div class="why-wrap" data-reveal>
         <div class="why-scroller" aria-label="Reasons to work with me">
           <div class="why-track">
-            <article class="why-card">
-              <div class="why-top"><span class="why-ic">📊</span><h3 class="why-title">Data-backed vetting</h3></div>
-              <p class="why-desc">Fraud checks, audience geos, growth curves, sentiment, and sponsor history baked into every shortlist.</p>
-            </article>
-            <article class="why-card">
-              <div class="why-top"><span class="why-ic">⚡</span><h3 class="why-title">Fast, focused delivery</h3></div>
-              <p class="why-desc">Clear 5-step process with timelines and status so you’re never guessing what’s next.</p>
-            </article>
-            <article class="why-card">
-              <div class="why-top"><span class="why-ic">🛡️</span><h3 class="why-title">Brand-safety first</h3></div>
-              <p class="why-desc">Risk screens and approvals-ready notes reduce back-and-forth and protect your brand.</p>
-            </article>
-            <article class="why-card">
-              <div class="why-top"><span class="why-ic">💌</span><h3 class="why-title">Outreach that gets replies</h3></div>
-              <p class="why-desc">Personalized angles and follow-ups with rate benchmarking and deal support.</p>
-            </article>
-            <article class="why-card">
-              <div class="why-top"><span class="why-ic">📈</span><h3 class="why-title">Transparent reporting</h3></div>
-              <p class="why-desc">Clickable trackers, UTM setup, and post-campaign dashboards to scale what works.</p>
-            </article>
-            <article class="why-card">
-              <div class="why-top"><span class="why-ic">🧰</span><h3 class="why-title">Fits your stack</h3></div>
-              <p class="why-desc">Airtable/Sheets/Notion — I plug into your workflows so your team moves faster.</p>
-            </article>
-
-            <!-- duplicate for seamless loop -->
-            <article class="why-card">
-              <div class="why-top"><span class="why-ic">📊</span><h3 class="why-title">Data-backed vetting</h3></div>
-              <p class="why-desc">Fraud checks, audience geos, growth curves, sentiment, and sponsor history baked into every shortlist.</p>
-            </article>
-            <article class="why-card">
-              <div class="why-top"><span class="why-ic">⚡</span><h3 class="why-title">Fast, focused delivery</h3></div>
-              <p class="why-desc">Clear 5-step process with timelines and status so you’re never guessing what’s next.</p>
-            </article>
-            <article class="why-card">
-              <div class="why-top"><span class="why-ic">🛡️</span><h3 class="why-title">Brand-safety first</h3></div>
-              <p class="why-desc">Risk screens and approvals-ready notes reduce back-and-forth and protect your brand.</p>
-            </article>
-            <article class="why-card">
-              <div class="why-top"><span class="why-ic">💌</span><h3 class="why-title">Outreach that gets replies</h3></div>
-              <p class="why-desc">Personalized angles and follow-ups with rate benchmarking and deal support.</p>
-            </article>
-            <article class="why-card">
-              <div class="why-top"><span class="why-ic">📈</span><h3 class="why-title">Transparent reporting</h3></div>
-              <p class="why-desc">Clickable trackers, UTM setup, and post-campaign dashboards to scale what works.</p>
-            </article>
-            <article class="why-card">
-              <div class="why-top"><span class="why-ic">🧰</span><h3 class="why-title">Fits your stack</h3></div>
-              <p class="why-desc">Airtable/Sheets/Notion — I plug into your workflows so your team moves faster.</p>
-            </article>
+            <article class="why-card"><div class="why-top"><span class="why-ic">📊</span><h3 class="why-title">Data-backed vetting</h3></div><p class="why-desc">Fraud checks, audience geos, growth curves, sentiment, and sponsor history baked into every shortlist.</p></article>
+            <article class="why-card"><div class="why-top"><span class="why-ic">⚡</span><h3 class="why-title">Fast, focused delivery</h3></div><p class="why-desc">Clear 5-step process with timelines and status so you’re never guessing what’s next.</p></article>
+            <article class="why-card"><div class="why-top"><span class="why-ic">🛡️</span><h3 class="why-title">Brand-safety first</h3></div><p class="why-desc">Risk screens and approvals-ready notes reduce back-and-forth and protect your brand.</p></article>
+            <article class="why-card"><div class="why-top"><span class="why-ic">💌</span><h3 class="why-title">Outreach that gets replies</h3></div><p class="why-desc">Personalized angles and follow-ups with rate benchmarking and deal support.</p></article>
+            <article class="why-card"><div class="why-top"><span class="why-ic">📈</span><h3 class="why-title">Transparent reporting</h3></div><p class="why-desc">Clickable trackers, UTM setup, and post-campaign dashboards to scale what works.</p></article>
+            <article class="why-card"><div class="why-top"><span class="why-ic">🧰</span><h3 class="why-title">Fits your stack</h3></div><p class="why-desc">Airtable/Sheets/Notion — I plug into your workflows so your team moves faster.</p></article>
+            <article class="why-card"><div class="why-top"><span class="why-ic">📊</span><h3 class="why-title">Data-backed vetting</h3></div><p class="why-desc">Fraud checks, audience geos, growth curves, sentiment, and sponsor history baked into every shortlist.</p></article>
+            <article class="why-card"><div class="why-top"><span class="why-ic">⚡</span><h3 class="why-title">Fast, focused delivery</h3></div><p class="why-desc">Clear 5-step process with timelines and status so you’re never guessing what’s next.</p></article>
+            <article class="why-card"><div class="why-top"><span class="why-ic">🛡️</span><h3 class="why-title">Brand-safety first</h3></div><p class="why-desc">Risk screens and approvals-ready notes reduce back-and-forth and protect your brand.</p></article>
+            <article class="why-card"><div class="why-top"><span class="why-ic">💌</span><h3 class="why-title">Outreach that gets replies</h3></div><p class="why-desc">Personalized angles and follow-ups with rate benchmarking and deal support.</p></article>
+            <article class="why-card"><div class="why-top"><span class="why-ic">📈</span><h3 class="why-title">Transparent reporting</h3></div><p class="why-desc">Clickable trackers, UTM setup, and post-campaign dashboards to scale what works.</p></article>
+            <article class="why-card"><div class="why-top"><span class="why-ic">🧰</span><h3 class="why-title">Fits your stack</h3></div><p class="why-desc">Airtable/Sheets/Notion — I plug into your workflows so your team moves faster.</p></article>
           </div>
         </div>
+        <div class="why-progress" aria-hidden="true"><div class="bar"></div></div>
       </div>
     </div>
   </section>
@@ -714,70 +522,66 @@
   <footer class="site-footer">
     <div class="container">
       <div class="footer-wrap">
-        <div class="footer-left">
-          <a href="mailto:uzair@vizzfluence.com">uzair@vizzfluence.com</a>
-          <a href="tel:+923001234567">+92 300 1234567</a>
-        </div>
-        <div class="footer-center">
-          <a href="index.html#hero" aria-label="Back to Home">VF</a>
-        </div>
+        <div class="footer-left footer-contact"><a href="mailto:uzair@vizzfluence.com">uzair@vizzfluence.com</a><a href="tel:+923001234567">+92 300 1234567</a></div>
+        <div class="footer-center"><a href="index.html#hero" aria-label="Back to Home">VF</a></div>
         <div class="footer-right">
-          <a href="#" aria-label="Instagram" title="Instagram">
-            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
-              <rect x="3" y="3" width="18" height="18" rx="5" ry="5"/>
-              <circle cx="12" cy="12" r="4"/>
-              <circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/>
-            </svg>
-          </a>
-          <a href="#" aria-label="Facebook" title="Facebook">
-            <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-              <path d="M22 12.06C22 6.5 17.52 2 12 2S2 6.5 2 12.06c0 5 3.66 9.14 8.44 9.94v-7.03H7.9v-2.9h2.54V9.85c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56v1.87h2.78l-.44 2.9h-2.34v7.03C18.34 21.2 22 17.06 22 12.06Z"/>
-            </svg>
-          </a>
-          <a href="#" aria-label="Twitter" title="Twitter">
-            <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-              <path d="M22 5.92c-.75.33-1.54 .55-2.37 .65a4.13 4.13 0 0 0 1.81-2.27c-.8 .47-1.68 .82-2.62 1A4.12 4.12 0 0 0 11.7 9a11.7 11.7 0 0 1-8.5-4.3 4.11 4.11 0 0 0 1.27 5.49c-.64-.02-1.25-.2-1.78-.49v.05c0 2 1.43 3.72 3.33 4.1-.35 .1-.72 .16-1.1 .16-.27 0-.53-.03-.78-.08a4.13 4.13 0 0 0 3.85 2.86A8.27 8.27 0 0 1 2 18.58a11.67 11.67 0 0 0 6.29 1.84c7.55 0 11.68-6.26 11.68-11.7 0-.18 0-.35-.01-.53 .8-.58 1.49-1.3 2.04-2.12Z"/>
-            </svg>
-          </a>
-          <a href="#" aria-label="LinkedIn" title="LinkedIn">
-            <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-              <path d="M4.98 3.5C4.98 4.6 4.1 5.5 3 5.5S1.02 4.6 1.02 3.5 1.9 1.5 3 1.5s1.98.9 1.98 2ZM2 8h2v12H2V8Zm6.5 0h1.9v1.7h.03c.26-.5 1.06-1.7 3.1-1.7 3.3 0 3.9 2.1 3.9 4.8V20h-2v-6c0-1.4 0-3.2-2-3.2-2 0-2.3 1.5-2.3 3.1V20h-2V8Z"/>
-            </svg>
-          </a>
+          <a href="https://www.instagram.com/vizzfluence_/?hl=en" target="_blank" rel="noopener" aria-label="Instagram" title="Instagram"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/></svg></a>
+          <a href="https://www.facebook.com/profile.php?id=61580344325129" target="_blank" rel="noopener" aria-label="Facebook" title="Facebook"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M22 12.06C22 6.5 17.52 2 12 2S2 6.5 2 12.06c0 5 3.66 9.14 8.44 9.94v-7.03H7.9v-2.9h2.54V9.85c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56v1.87h2.78l-.44 2.9h-2.34v7.03C18.34 21.2 22 17.06 22 12.06Z"/></svg></a>
+          <a href="https://www.linkedin.com/company/109074172/admin/dashboard/" target="_blank" rel="noopener" aria-label="LinkedIn" title="LinkedIn"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M4.98 3.5C4.98 4.6 4.1 5.5 3 5.5S1.02 4.6 1.02 3.5 1.9 1.5 3 1.5s1.98.9 1.98 2ZM2 8h2v12H2V8Zm6.5 0h1.9v1.7h.03c.26-.5 1.06-1.7 3.1-1.7 3.3 0 3.9 2.1 3.9 4.8V20h-2v-6c0-1.4 0-3.2-2-3.2-2 0-2.3 1.5-2.3 3.1V20h-2V8Z"/></svg></a>
         </div>
       </div>
       <div class="footer-divider"></div>
-      <div class="foot-bottom">
-        <p>© 2025 Uzair / Vizzfluence. All rights reserved.</p>
-        <p>
-          <a href="#">Terms of Service</a>
-          <a href="#">Return Policy</a>
-          <a href="#">Privacy Policy</a>
-        </p>
-      </div>
+      <div class="foot-bottom"><p>© 2025 Uzair / Vizzfluence. All rights reserved.</p><p><a href="#">Terms of Service</a><a href="#">Return Policy</a><a href="#">Privacy Policy</a></p></div>
     </div>
   </footer>
 
   <script>
-    // Mobile menu
-    const toggle=document.querySelector('.menu-toggle');
-    const links=document.querySelector('.nav-links');
-    toggle?.addEventListener('click',()=>{
-      const open=links.classList.toggle('open');
-      toggle.setAttribute('aria-expanded',String(open));
-    });
-    links?.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{
-      links.classList.remove('open'); toggle.setAttribute('aria-expanded','false');
-    }));
+    const toggle = document.querySelector('.menu-toggle');
+    const links  = document.querySelector('.nav-links');
+    const header = document.querySelector('header.site-header');
+    const drawerCloseBtn = document.querySelector('.drawer-close');
 
-    // Reveal
+    function openMenu(){
+      links.classList.add('open');
+      toggle.setAttribute('aria-expanded','true');
+      toggle.setAttribute('aria-label','Close menu');
+      document.body.classList.add('no-scroll');
+      header.classList.remove('off');
+      drawerCloseBtn?.classList.remove('hidden');
+    }
+    function closeMenu(){
+      links.classList.remove('open');
+      toggle.setAttribute('aria-expanded','false');
+      toggle.setAttribute('aria-label','Open menu');
+      document.body.classList.remove('no-scroll');
+      updateHeader();
+      drawerCloseBtn?.classList.add('hidden');
+    }
+
+    toggle?.addEventListener('click',()=>{ links.classList.contains('open') ? closeMenu() : openMenu(); });
+    drawerCloseBtn?.addEventListener('click', closeMenu);
+    document.addEventListener('keydown',(e)=>{ if(e.key==='Escape' && links.classList.contains('open')) closeMenu(); });
+
+    links?.querySelectorAll('a').forEach(a=>{
+      a.addEventListener('click', (e)=>{
+        const href = a.getAttribute('href') || '';
+        if(href.startsWith('#')){
+          e.preventDefault();
+          const el = document.querySelector(href);
+          closeMenu();
+          if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
+        }else{
+          closeMenu();
+        }
+      });
+    });
+
     const revealEls=document.querySelectorAll('[data-reveal]');
     const io=new IntersectionObserver((entries)=>entries.forEach(e=>{
       if(e.isIntersecting){e.target.classList.add('is-visible');io.unobserve(e.target)}
     }),{threshold:.12});
     revealEls.forEach(el=>io.observe(el));
 
-    // Counters
     const counters=document.querySelectorAll('[data-counter]');
     const animate=(el)=>{const t=+el.dataset.counter, d=1200, s=performance.now();
       const step=(n)=>{const p=Math.min((n-s)/d,1), e=1-Math.pow(1-p,3); el.textContent=Math.floor(e*t).toLocaleString(); if(p<1)requestAnimationFrame(step);};
@@ -788,32 +592,12 @@
     }),{threshold:.6});
     counters.forEach(el=>co.observe(el));
 
-    // Case filter
     const filterBtns=document.querySelectorAll('.filter button'), cards=document.querySelectorAll('.case-card');
     filterBtns.forEach(btn=>btn.addEventListener('click',()=>{
       filterBtns.forEach(b=>b.classList.remove('active')); btn.classList.add('active');
       const f=btn.dataset.filter; cards.forEach(c=>c.style.display=(f==='all'||c.dataset.category===f)?'':'none');
     }));
 
-    // Auto-hide header on scroll
-    (function(){
-      const header=document.querySelector('header.site-header');
-      const links=document.querySelector('.nav-links');
-      let lastY=window.scrollY, ticking=false;
-      function onScroll(){
-        const y=window.scrollY;
-        const down = y > lastY + 8;
-        const up   = y < lastY - 8;
-        if(down && !links.classList.contains('open')) header.classList.add('hide');
-        else if(up) header.classList.remove('hide');
-        lastY=y; ticking=false;
-      }
-      window.addEventListener('scroll', ()=>{
-        if(!ticking){ requestAnimationFrame(onScroll); ticking=true; }
-      }, {passive:true});
-    })();
-
-    /* SERVICES slide-in & parallax & tilt */
     (function(){
       const cards = document.querySelectorAll('[data-svc-card]');
       if('IntersectionObserver' in window){
@@ -828,10 +612,9 @@
           });
         },{ threshold:.22 });
         cards.forEach(c=>io.observe(c));
-      }else{
-        cards.forEach(c=>c.classList.add('is-in'));
-      }
+      }else{ cards.forEach(c=>c.classList.add('is-in')); }
     })();
+
     (function(){
       const wrap = document.querySelector('.svc-wrap');
       const section = document.getElementById('services');
@@ -846,10 +629,9 @@
         ticking=false;
       }
       function onScroll(){ if(!ticking){ requestAnimationFrame(parallax); ticking=true; } }
-      parallax();
-      window.addEventListener('scroll', onScroll, {passive:true});
-      window.addEventListener('resize', onScroll);
+      parallax(); window.addEventListener('scroll', onScroll, {passive:true}); window.addEventListener('resize', onScroll);
     })();
+
     (function(){
       const cards = document.querySelectorAll('.svc-card');
       const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -875,7 +657,6 @@
       });
     })();
 
-    /* WHY section animations */
     (function(){
       const cards = document.querySelectorAll('.why-card');
       if(!cards.length) return;
@@ -887,6 +668,38 @@
         cards.forEach(c=>io.observe(c));
       }else{ cards.forEach(c=>c.classList.add('why-in')); }
     })();
+
+    /* Mobile progress bar logic for WHY scroller — reaches 100% when last card's right edge (text end) is reached */
+    (function(){
+      const scroller=document.querySelector('#why .why-scroller');
+      const bar=document.querySelector('#why .why-progress .bar');
+      if(!scroller||!bar) return;
+      const THUMB=14; // percent thumb width (matches CSS)
+      function maxAtTextEnd(){
+        const cards=[...scroller.querySelectorAll('.why-card')];
+        if(!cards.length) return scroller.scrollWidth - scroller.clientWidth;
+        const last=cards[cards.length-1];
+        // when the last card's right edge touches the scroller's right edge:
+        return Math.max(0,(last.offsetLeft + last.offsetWidth) - scroller.clientWidth);
+      }
+      function update(){
+        bar.style.width=THUMB+'%';
+        const max = maxAtTextEnd();
+        const ratio = max>0 ? Math.min(scroller.scrollLeft / max, 1) : 1;
+        bar.style.transform=`translateX(${ratio*(100-THUMB)}%)`;
+      }
+      scroller.addEventListener('scroll',update,{passive:true});
+      window.addEventListener('resize',update);
+      update();
+    })();
+
+    function updateHeader(){
+      if(links.classList.contains('open')){ header.classList.remove('off'); return; }
+      if(window.scrollY > 0){ header.classList.add('off'); } else { header.classList.remove('off'); }
+    }
+    updateHeader();
+    window.addEventListener('scroll', updateHeader, {passive:true});
+    window.addEventListener('resize', updateHeader);
   </script>
 </body>
 </html>
