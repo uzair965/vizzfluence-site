@@ -7,7 +7,11 @@
   ],
   "routes": [
     { "src": "^/$", "dest": "/index.html" },
+
     { "src": "^/about$", "dest": "/about.html" },
-    { "src": "^/contact$", "dest": "/contact.html" }
+    { "src": "^/about.html$", "status": 308, "headers": { "Location": "/about" } },
+
+    { "src": "^/contact$", "dest": "/contact.html" },
+    { "src": "^/contact.html$", "status": 308, "headers": { "Location": "/contact" } }
   ]
 }
