@@ -1,10 +1,5 @@
-{
+﻿{
   "version": 2,
-  "builds": [
-    { "src": "index.html", "use": "@vercel/static" },
-    { "src": "about.html", "use": "@vercel/static" },
-    { "src": "contact.html", "use": "@vercel/static" }
-  ],
   "routes": [
     { "src": "^/$", "dest": "/index.html" },
     { "src": "^/index.html$", "status": 308, "headers": { "Location": "/" } },
